@@ -1,0 +1,55 @@
+# Experiment 10: Naive Bayes Classifier
+# Classifies email messages as spam or ham, following the supplied PDF.
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score, classification_report
+
+emails = [
+    "You have won a free vacation",
+    "Click here to claim your cash reward",
+    "Congratulations you are a lucky winner",
+    "Get a special discount offer today",
+    "Earn money quickly from home",
+    "Limited time offer buy now",
+    "Your bank statement is ready",
+    "Please send me the project report",
+    "The lecture will begin at nine",
+    "Your assignment submission is tomorrow",
+    "Let us meet in the library",
+    "The team meeting is scheduled for Monday",
+    "Please review the attached document",
+    "Your exam timetable has been published",
+    "Thank you for attending the meeting",
+    "Win a brand new smartphone today",
+]
+labels = [
+    "spam", "spam", "spam", "spam", "spam", "spam",
+    "ham", "ham", "ham", "ham", "ham", "ham", "ham", "ham", "ham", "spam"
+]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    emails, labels, test_size=0.25, random_state=42, stratify=labels
+)
+
+model = Pipeline([
+    ("vectorizer", CountVectorizer()),
+    ("classifier", MultinomialNB())
+])
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+print(f"Accuracy: {accuracy_score(y_test, y_pred) * 100:.2f}%")
+print("\nClassification report:\n",
+      classification_report(y_test, y_pred, labels=["ham", "spam"],
+                            target_names=["Ham (Not Spam)", "Spam"], zero_division=0))
+
+new_emails = [
+    "Congratulations claim your free reward now",
+    "Please attend the project meeting tomorrow"
+]
+for email, prediction in zip(new_emails, model.predict(new_emails)):
+    print(f"{email!r} -> {prediction}")

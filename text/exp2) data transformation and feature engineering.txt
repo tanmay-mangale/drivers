@@ -1,0 +1,35 @@
+# Experiment 2: Data Transformation and Feature Engineering
+# Demonstrates log transformation, scaling, and creating derived features.
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+df = pd.DataFrame({
+    "Age": [23, 45, 31, 29, 52],
+    "Annual_Income": [32000, 85000, 54000, 48000, 102000],
+    "Salary": [2667, 7083, 4500, 4000, 8500]
+})
+
+print("Original data:")
+print(df)
+
+# Feature engineering: create useful features
+df["Monthly_Income"] = df["Annual_Income"] / 12
+df["Income_per_Age"] = df["Annual_Income"] / df["Age"]
+
+# Feature transformation: log transform positive income values
+df["Log_Annual_Income"] = np.log1p(df["Annual_Income"])
+
+# Min-max scaling maps values to [0, 1]
+minmax = MinMaxScaler()
+df[["Scaled_Age", "Scaled_Salary"]] = minmax.fit_transform(df[["Age", "Salary"]])
+
+# Standardization produces features with mean near 0 and standard deviation near 1
+standard = StandardScaler()
+df[["Z_Annual_Income", "Z_Salary"]] = standard.fit_transform(
+    df[["Annual_Income", "Salary"]]
+)
+
+print("\nTransformed and engineered data:")
+print(df.round(3))

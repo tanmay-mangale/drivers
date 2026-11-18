@@ -1,0 +1,25 @@
+# Experiment 8: Support Vector Machine (SVM) Classifier
+# Classifies breast tumours as malignant or benign.
+
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+dataset = load_breast_cancer()
+X_train, X_test, y_train, y_test = train_test_split(
+    dataset.data, dataset.target, test_size=0.2, random_state=42, stratify=dataset.target
+)
+
+# Scaling is important for SVM; the pipeline fits the scaler on training data only.
+model = make_pipeline(StandardScaler(), SVC(kernel="rbf", C=1.0, gamma="scale"))
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+print(f"Accuracy: {accuracy_score(y_test, y_pred) * 100:.2f}%")
+print("\nConfusion matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification report:\n",
+      classification_report(y_test, y_pred, target_names=dataset.target_names,
+                            zero_division=0))

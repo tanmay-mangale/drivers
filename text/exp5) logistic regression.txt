@@ -1,0 +1,47 @@
+# Experiment 5: Logistic Regression
+# Classify whether a student passes based on study hours and previous score.
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+data = pd.DataFrame({
+    "study_hours": [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9],
+    "previous_score": [35, 40, 45, 42, 50, 48, 55, 52, 60, 58, 65, 68, 72, 75, 80, 88],
+    "passed": [0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1]
+})
+
+X = data[["study_hours", "previous_score"]]
+y = data["passed"]
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42, stratify=y
+)
+
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+print(f"Accuracy: {accuracy_score(y_test, y_pred) * 100:.2f}%")
+print("\nConfusion matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification report:\n",
+      classification_report(y_test, y_pred, zero_division=0))
+
+sample = pd.DataFrame([[6, 70]], columns=X.columns)
+print("Prediction for 6 study hours and score 70:",
+      "Pass" if model.predict(sample)[0] == 1 else "Fail")
+
+# Probability curve against study hours, holding previous score fixed
+hours = pd.DataFrame({
+    "study_hours": range(1, 10),
+    "previous_score": [60] * 9
+})
+probabilities = model.predict_proba(hours)[:, 1]
+plt.plot(hours["study_hours"], probabilities, marker="o")
+plt.axhline(0.5, linestyle="--", color="gray")
+plt.xlabel("Study hours")
+plt.ylabel("Probability of passing")
+plt.title("Logistic Regression")
+plt.tight_layout()
+plt.show()

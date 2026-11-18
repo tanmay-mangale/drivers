@@ -1,0 +1,48 @@
+# Experiment 6: Decision Tree Classifier (ID3-style entropy criterion)
+# Uses a small Play Tennis dataset, similar to the supplied PDF.
+
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier, export_text
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import accuracy_score, classification_report
+
+data = pd.DataFrame({
+    "Outlook": ["Sunny", "Sunny", "Overcast", "Rain", "Rain", "Rain",
+                "Overcast", "Sunny", "Sunny", "Rain", "Sunny", "Overcast",
+                "Overcast", "Rain"],
+    "Temperature": ["Hot", "Hot", "Hot", "Mild", "Cool", "Cool", "Mild",
+                    "Mild", "Cool", "Mild", "Mild", "Hot", "Cool", "Mild"],
+    "Humidity": ["High", "High", "High", "High", "Normal", "Normal", "Normal",
+                 "High", "Normal", "Normal", "Normal", "High", "Normal", "High"],
+    "Windy": ["False", "True", "False", "False", "False", "True", "True",
+              "False", "False", "False", "True", "True", "False", "True"],
+    "Play": ["No", "No", "Yes", "Yes", "Yes", "No", "Yes", "No",
+             "Yes", "Yes", "Yes", "Yes", "Yes", "No"]
+})
+
+X_raw = data.drop(columns="Play")
+y = data["Play"]
+
+# Encode each categorical feature as integers
+encoders = {}
+X = X_raw.copy()
+for column in X.columns:
+    encoder = LabelEncoder()
+    X[column] = encoder.fit_transform(X[column])
+    encoders[column] = encoder
+
+model = DecisionTreeClassifier(criterion="entropy", random_state=42)
+model.fit(X, y)
+
+print("Decision tree rules:")
+print(export_text(model, feature_names=list(X.columns)))
+print(f"Training accuracy: {accuracy_score(y, model.predict(X)) * 100:.2f}%")
+print("\nClassification report:\n",
+      classification_report(y, model.predict(X), zero_division=0))
+
+new_day = pd.DataFrame([{
+    "Outlook": "Sunny", "Temperature": "Cool", "Humidity": "Normal", "Windy": "False"
+}])
+for column in new_day.columns:
+    new_day[column] = encoders[column].transform(new_day[column])
+print("Prediction for new day:", model.predict(new_day)[0])

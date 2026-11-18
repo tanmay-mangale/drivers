@@ -1,0 +1,36 @@
+# Experiment 11: K-Means Clustering
+# Groups generated points into four clusters, similar to the supplied PDF.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+
+rng = np.random.default_rng(42)
+cluster_centers = np.array([[2, 2], [8, 3], [4, 8], [9, 9]])
+X = np.vstack([
+    rng.normal(loc=center, scale=0.8, size=(50, 2))
+    for center in cluster_centers
+])
+
+# Standardization is optional here, but useful when features have different scales.
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+model = KMeans(n_clusters=4, random_state=42, n_init=10)
+labels = model.fit_predict(X_scaled)
+centers = scaler.inverse_transform(model.cluster_centers_)
+
+print("Cluster centers:")
+print(np.round(centers, 2))
+for cluster_id in range(4):
+    print(f"Cluster {cluster_id + 1}: {(labels == cluster_id).sum()} points")
+
+plt.scatter(X[:, 0], X[:, 1], c=labels, s=25, cmap="viridis")
+plt.scatter(centers[:, 0], centers[:, 1], marker="X", s=220, c="red", label="Centroids")
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
+plt.title("K-Means Clustering (K=4)")
+plt.legend()
+plt.tight_layout()
+plt.show()

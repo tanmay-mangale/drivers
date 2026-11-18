@@ -1,0 +1,82 @@
+# Experiment 15: Sentiment Classifier
+# Demonstrates tokenization, stop-word removal, stemming, and sentiment classification.
+# Uses a small local sentiment lexicon so no downloaded NLTK resources are required.
+
+import re
+import pandas as pd
+import matplotlib.pyplot as plt
+from nltk.stem import PorterStemmer
+
+texts = [
+    "The movie was excellent and I really enjoyed it.",
+    "The product is very bad and disappointing.",
+    "The service was good and the staff were helpful.",
+    "I do not like this product because it is terrible.",
+    "The movie was okay and the story was average."
+]
+
+stop_words = {
+    "the", "a", "an", "and", "i", "it", "is", "was", "were", "very",
+    "this", "because", "my", "we", "they", "to", "of", "in", "for", "you"
+}
+positive_words = {
+    "excellent", "enjoyed", "good", "helpful", "great", "love", "amazing",
+    "wonderful", "happy", "best", "like", "nice"
+}
+negative_words = {
+    "bad", "disappointing", "terrible", "hate", "awful", "poor", "worst",
+    "boring", "angry", "sad", "broken"
+}
+negations = {"not", "no", "never", "n't"}
+stemmer = PorterStemmer()
+
+
+def preprocess_text(text):
+    tokens = re.findall(r"[a-zA-Z]+", text.lower())
+    filtered_tokens = [word for word in tokens if word not in stop_words]
+    stemmed_tokens = [stemmer.stem(word) for word in filtered_tokens]
+    return tokens, filtered_tokens, stemmed_tokens
+
+
+def classify_sentiment(text):
+    tokens = re.findall(r"[a-zA-Z]+", text.lower())
+    score = 0
+    for index, word in enumerate(tokens):
+        value = 1 if word in positive_words else -1 if word in negative_words else 0
+        # Reverse the sentiment of a word when preceded by a negation.
+        if index > 0 and tokens[index - 1] in negations:
+            value *= -1
+        score += value
+    if score > 0:
+        label = "Positive"
+    elif score < 0:
+        label = "Negative"
+    else:
+        label = "Neutral"
+    return label, score
+
+results = []
+for text in texts:
+    tokens, filtered, stemmed = preprocess_text(text)
+    sentiment, score = classify_sentiment(text)
+    results.append({
+        "Original Text": text,
+        "Tokens": tokens,
+        "After Stop-word Removal": filtered,
+        "After Stemming": stemmed,
+        "Sentiment Score": score,
+        "Sentiment": sentiment
+    })
+
+df = pd.DataFrame(results)
+print("Text preprocessing and sentiment analysis:")
+print(df.to_string(index=False))
+print("\nSentiment summary:")
+print(df["Sentiment"].value_counts())
+
+df["Sentiment"].value_counts().plot(kind="bar")
+plt.xlabel("Sentiment")
+plt.ylabel("Number of texts")
+plt.title("Sentiment Distribution")
+plt.tight_layout()
+plt.show()

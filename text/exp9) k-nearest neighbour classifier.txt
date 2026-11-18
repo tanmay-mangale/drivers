@@ -1,0 +1,28 @@
+# Experiment 9: K-Nearest Neighbour (KNN) Classifier
+# Breast cancer classification, following the supplied PDF.
+
+import pandas as pd
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+dataset = load_breast_cancer()
+X_train, X_test, y_train, y_test = train_test_split(
+    dataset.data, dataset.target, test_size=0.2, random_state=42, stratify=dataset.target
+)
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+model = KNeighborsClassifier(n_neighbors=5)
+model.fit(X_train_scaled, y_train)
+y_pred = model.predict(X_test_scaled)
+
+print(f"Accuracy: {accuracy_score(y_test, y_pred) * 100:.2f}%")
+print("\nClassification report:\n",
+      classification_report(y_test, y_pred, target_names=dataset.target_names,
+                            zero_division=0))
+print("Sample prediction:", dataset.target_names[model.predict(X_test_scaled[:1])[0]])
